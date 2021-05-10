@@ -8,10 +8,10 @@ from vl53l0x import VL53L0X
 #
 sda = Pin(14)
 scl = Pin(15)
-id = 1
-print("setting up i2c", id)
+i2cID = 1
+print("setting up i2c", i2cID)
 
-i2c = I2C(id=id, sda=sda, scl=scl)
+i2c = I2C(id=i2cID, sda=sda, scl=scl)
 
 print(repr(i2c.scan()))
 if 0x29 not in i2c.scan():
@@ -43,4 +43,4 @@ tof.set_Vcsel_pulse_period(tof.vcsel_period_type[1], 8)
 
 while True:
 # Start ranging
-    print(tof.ping()-50, "mm")
+    print(tof.ping(), "mm")
