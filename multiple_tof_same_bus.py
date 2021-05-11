@@ -1,4 +1,5 @@
 from vl53l0x import setup_tofls_same_bus
+from machine import Pin
 i2cID=1
 sda=14
 scl=15
@@ -22,10 +23,18 @@ try:
             data+="s"+str(i)+": "+str(values[i])+" mm.\t"
         print(data)
 finally:
-    # Restore default address
+    # Restore default address and xshut pin.
+    # Have to restore ALL tofl from EACH i2c:
+    # if are using 2 i2c: modify the code below to restore 
+    # address and xshut pin from second i2c too
     print("Restoring")
     for i in range (len(tofls)):
         tofls[i].set_address(0x29)
+        if i>0:
+            #xshut pin as Pin.OUT
+            device_xshut=Pin(tofls_xshut[i],Pin.OUT)
+            #disable xshut pin (low)
+            device_xshut.value(0)
         print("tofl",i,"done")
 
 
