@@ -1,5 +1,6 @@
 from micropython import const
 import ustruct
+from machine import I2C,Pin
 import utime
 # from machine import Timer
 # import time
@@ -174,15 +175,15 @@ class VL53L0X:
             self._register(register, value)
 
     def init(self, power2v8=True):
-        # validate in the same way the adafruit code does
-        if (
-            self._register(0xC0) != 0xEE
-            or self._register(0xC1) != 0xAA
-            or self._register(0xC2) != 0x10
-        ):
-            raise RuntimeError(
-                "Failed to find expected ID register values. Check wiring!"
-            )
+        # # validate in the same way the adafruit code does
+        # if (
+        #     self._register(0xC0) != 0xEE
+        #     or self._register(0xC1) != 0xAA
+        #     or self._register(0xC2) != 0x10
+        # ):
+        #     raise RuntimeError(
+        #         "Failed to find expected ID register values. Check wiring!"
+        #     )
 
         self._flag(_EXTSUP_HV, 0, power2v8)
 
@@ -704,3 +705,43 @@ def setup_tofl_device(i2c, timing_budget, pre_range, final_range):
     # tof.set_Vcsel_pulse_period(tof.vcsel_period_type[1], 14)
     tofl.set_Vcsel_pulse_period(VL53L0X.vcsel_period_type[1], final_range)
     return tofl
+
+def setup_tofls_same_bus (tofls_xshut,i2cID,sda,scl,timing_budget=40000,pre_range=12,final_range=8):    
+    i2c=I2C(id=i2cID,sda=Pin(sda),scl=Pin(scl))
+    
+    #disable ALL xshut_pins from tofl1 (tofl0_xshut is none)
+    for i in range(1,len(tofls_xshut)):
+        #xshut pin as Pin.OUT
+        device_xshut=Pin(tofls_xshut[i],Pin.OUT)
+        #disable xshut pin (low)
+        device_xshut.value(0)
+        
+    tofls=[]
+    #iterating to create all tofl objects
+    for i in range(len(tofls_xshut)):
+        #enable xshut pin
+        if i>0: #tofl0_xshut is None, dont need be enabled
+            #xshut pin as Pin.OUT
+            device_xshut=Pin(tofls_xshut[i],Pin.OUT)
+            #enable xshut pin (high)
+            device_xshut.value(1)
+            utime.sleep_us(TBOOT)
+        
+        #make tofl object
+        print("Setting up device",i)
+        tofl=setup_tofl_device(i2c,timing_budget,pre_range,final_range)
+        #set tofl address (will be same as tofl number)
+        tofl.set_address(i)
+        #add tofl to tofls list
+        tofls.append(tofl)
+    
+    #enable ALL xshut_pins from tofl1 (tofl0_xshut is none)
+    for i in range(1,len(tofls_xshut)):
+        #xshut pin as Pin.OUT
+        device_xshut=Pin(tofls_xshut[i],Pin.OUT)
+        #enable xshut pin (high)
+        device_xshut.value(1)
+        utime.sleep_us(TBOOT)
+        
+    #return tofls list
+    return tofls
