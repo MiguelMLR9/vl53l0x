@@ -730,8 +730,11 @@ def setup_tofls_same_bus (tofls_xshut,i2cID,sda,scl,timing_budget=40000,pre_rang
         #make tofl object
         print("Setting up device",i)
         tofl=setup_tofl_device(i2c,timing_budget,pre_range,final_range)
-        #set tofl address (will be same as tofl number)
-        tofl.set_address(i)
+        #set tofl address (i2c0 starts on 0, i2c1 starts on 42)
+        if i2cID==0:
+            tofl.set_address(i)
+        else:
+            tofl.set_address(42+i)
         #add tofl to tofls list
         tofls.append(tofl)
     
