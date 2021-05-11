@@ -4,7 +4,7 @@ sda=14
 scl=15
 #example with 3 tofls (have to be 2 or more)
 #tofls xshut pins
-tofl0_xshut=None #tofl0 always is None (xshut pin NOT wired)
+tofl0_xshut=None #first tofl of i2c always is None (xshut pin NOT wired)
 tofl1_xshut=16
 tofl2_xshut=17
 #add all xshut pins to a list (have to be ordered: tofl0,tofl1,tofl2,...)
